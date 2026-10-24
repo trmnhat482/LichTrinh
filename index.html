@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light dark" />
+<title>Daily Focus — Nhật ký công việc</title>
+<style>
+:root{
+  color-scheme:light;
+  --canvas:#f5f6f8;--surface:#fff;--surface-soft:#f8f9fb;--surface-2:#eceff3;
+  --ink:#1d1d1f;--muted:#6e7178;--line:#e6e8ec;--blue:#2783de;--blue-soft:#eaf4fd;
+  --green:#2c9b69;--green-soft:#e9f6ef;--shadow:0 12px 36px rgba(25,35,50,.06);
+  --radius:18px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--canvas);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+.shell{max-width:1100px;margin:0 auto;padding:40px 28px 56px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:28px}
+.brand{display:flex;align-items:center;gap:11px;font-size:13px;font-weight:700;letter-spacing:.13em;color:var(--muted)}
+.brand-mark{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:var(--ink);color:#fff;font-size:15px;letter-spacing:0}
+.save-state{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}
+.save-dot{width:8px;height:8px;border-radius:50%;background:var(--green)}
+.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:28px}
+.eyebrow{margin:0 0 7px;color:var(--blue);font-size:12px;font-weight:700;letter-spacing:.13em;text-transform:uppercase}
+h1{margin:0;font-size:clamp(30px,4vw,43px);line-height:1.08;letter-spacing:-.045em;font-weight:700}
+.subtitle{margin:10px 0 0;color:var(--muted);font-size:15px}
+.date-control{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.date-input{height:46px;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:0 13px;color:var(--ink);min-width:170px;box-shadow:0 1px 2px rgba(0,0,0,.02)}
+.day-chip{height:38px;display:inline-flex;align-items:center;padding:0 13px;border-radius:999px;background:var(--blue-soft);color:var(--blue);font-size:13px;font-weight:650;white-space:nowrap}
+.today-btn{height:42px;padding:0 15px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font-weight:600}
+button:hover{filter:brightness(.98)}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid rgba(39,131,222,.25);outline-offset:2px}
+.layout{display:grid;grid-template-columns:minmax(0,1.52fr) minmax(290px,.88fr);grid-template-areas:"tasks side";gap:20px;align-items:start}
+.task-card{grid-area:tasks}.side{grid-area:side;display:grid;gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px}
+.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}
+.card-title{margin:0;font-size:18px;line-height:1.25;letter-spacing:-.02em;font-weight:680}
+.card-hint{margin:5px 0 0;color:var(--muted);font-size:13px}
+.count{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:28px;padding:0 9px;border-radius:9px;background:var(--surface-soft);color:var(--muted);font-size:12px;font-weight:650}
+.task-form{display:flex;gap:9px;margin-bottom:15px}
+.task-input{width:100%;height:48px;min-width:0;padding:0 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface-soft);color:var(--ink)}
+.task-input::placeholder,textarea::placeholder{color:#9a9da4}
+.add-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:132px;height:48px;padding:0 15px;border:0;border-radius:12px;background:var(--blue);color:#fff;font-weight:650;white-space:nowrap;flex:0 0 auto;box-shadow:0 4px 10px rgba(39,131,222,.18)}
+.plus{font-size:20px;font-weight:400;line-height:0}
+.task-list{display:grid;gap:8px}
+.task-row{display:grid;grid-template-columns:22px minmax(0,1fr) 36px;align-items:center;gap:12px;min-height:54px;padding:9px 9px 9px 13px;border:1px solid var(--line);border-radius:13px;background:var(--surface);transition:border-color .15s,background .15s}
+.task-row:hover{border-color:#cdd4de;background:var(--surface-soft)}
+.task-check{width:20px;height:20px;margin:0;accent-color:var(--blue);cursor:pointer}
+.task-label{min-width:0;overflow-wrap:anywhere;font-size:15px}
+.task-row.is-done .task-label{color:var(--muted);text-decoration:line-through;text-decoration-thickness:1px}
+.remove-btn{display:grid;place-items:center;width:34px;height:34px;border:0;border-radius:9px;background:transparent;color:#92969e;font-size:20px;line-height:1}
+.remove-btn:hover{background:#fce9e7;color:#c6463a}
+.empty-state{padding:25px 14px;border:1px dashed var(--line);border-radius:13px;color:var(--muted);text-align:center;font-size:14px}
+.field-label{display:block;margin-bottom:9px;font-size:13px;font-weight:680;color:var(--muted)}
+textarea{display:block;width:100%;min-height:96px;resize:vertical;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface-soft);color:var(--ink);line-height:1.5}
+#goal{min-height:90px}#notes{min-height:104px}
+.progress-card{background:linear-gradient(145deg,var(--surface) 55%,var(--blue-soft));}
+.progress-content{display:flex;align-items:center;gap:18px}
+.progress-ring{--angle:0deg;display:grid;place-items:center;flex:0 0 auto;width:76px;height:76px;border-radius:50%;background:conic-gradient(var(--blue) var(--angle),var(--surface-2) var(--angle));position:relative}
+.progress-ring::before{content:"";position:absolute;inset:7px;border-radius:50%;background:var(--surface)}
+.progress-value{position:relative;z-index:1;font-size:17px;font-weight:750;letter-spacing:-.03em}
+.progress-copy strong{display:block;font-size:16px;letter-spacing:-.01em}
+.progress-copy span{display:block;margin-top:3px;color:var(--muted);font-size:13px}
+.progress-track{height:6px;margin-top:17px;border-radius:999px;background:var(--surface-2);overflow:hidden}
+.progress-fill{height:100%;width:0;background:linear-gradient(90deg,#2783de,#65a9ef);border-radius:999px;transition:width .25s ease}
+.note-card{border-color:#f0e2d3;background:linear-gradient(145deg,var(--surface),#fffaf5)}
+.note-card .field-label{color:#8d6447}
+.footer{margin-top:22px;text-align:center;color:var(--muted);font-size:12px}
+@media(max-width:760px){
+ .shell{padding:24px 16px 36px}.topbar{margin-bottom:22px}.hero{align-items:flex-start;flex-direction:column;margin-bottom:20px;gap:16px}.date-control{justify-content:flex-start;width:100%}.date-input{flex:1;min-width:0}.layout{grid-template-columns:1fr;grid-template-areas:"goal" "progress" "tasks" "notes"}.goal-card{grid-area:goal}.progress-card{grid-area:progress}.task-card{grid-area:tasks}.note-card{grid-area:notes}.side{display:contents}.card{padding:18px;border-radius:16px}.card-head{margin-bottom:15px}
+}
+@media(max-width:420px){.shell{padding-left:14px;padding-right:14px}.date-control{gap:7px}.date-input{height:44px}.today-btn{height:44px;padding:0 12px}.day-chip{height:35px;padding:0 10px}.add-btn{min-width:48px;width:48px;padding:0}.add-btn .add-text{display:none}.card{padding:16px}.progress-content{gap:14px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+@media(prefers-color-scheme:dark){
+ :root{color-scheme:dark;--canvas:#191919;--surface:#202020;--surface-soft:#252525;--surface-2:#383836;--ink:#f5f5f7;--muted:rgba(255,255,255,.66);--line:rgba(255,255,255,.14);--blue:#5e9fe8;--blue-soft:rgba(94,159,232,.14);--green:#72bc8f;--green-soft:rgba(114,188,143,.13);--shadow:0 12px 36px rgba(0,0,0,.18)
+ }
+ .brand-mark{background:#f5f5f7;color:#191919}.note-card{border-color:rgba(213,128,59,.22);background:linear-gradient(145deg,var(--surface),rgba(213,128,59,.07))}.note-card .field-label{color:#de9255}.task-row:hover{background:#262626;border-color:#4c4e52}.remove-btn:hover{background:rgba(229,100,88,.14);color:#e97366}.progress-card{background:linear-gradient(145deg,var(--surface) 55%,rgba(94,159,232,.1))}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">✳</span><span>DAILY FOCUS</span></div>
+    <div class="save-state" role="status" aria-live="polite"><span class="save-dot"></span><span id="saveLabel">Tự lưu trên thiết bị</span></div>
+  </header>
+  <section class="hero" aria-labelledby="pageTitle">
+    <div>
+      <p class="eyebrow">Một ngày · Một trọng tâm</p>
+      <h1 id="pageTitle">Làm việc có chủ đích.</h1>
+      <p class="subtitle">Ghi mục tiêu, thêm việc cần làm, tích xong — tiến độ tự cập nhật.</p>
+    </div>
+    <div class="date-control">
+      <label for="dateInput" class="sr-only" style="position:absolute;left:-9999px">Chọn ngày</label>
+      <input class="date-input" id="dateInput" type="date" />
+      <span class="day-chip" id="weekday">—</span>
+      <button class="today-btn" id="todayBtn" type="button">Hôm nay</button>
+    </div>
+  </section>
+
+  <main class="layout">
+    <section class="card task-card" aria-labelledby="tasksTitle">
+      <div class="card-head">
+        <div><h2 class="card-title" id="tasksTitle">Công việc</h2><p class="card-hint">Tích vào ô khi hoàn thành</p></div>
+        <span class="count" id="taskCount" aria-label="Số công việc">0 việc</span>
+      </div>
+      <form class="task-form" id="taskForm">
+        <label for="taskInput" class="sr-only" style="position:absolute;left:-9999px">Tên công việc</label>
+        <input class="task-input" id="taskInput" type="text" maxlength="180" placeholder="Thêm một việc cần làm…" autocomplete="off" />
+        <button class="add-btn" type="submit"><span class="plus" aria-hidden="true">+</span><span class="add-text">Thêm việc</span></button>
+      </form>
+      <div class="task-list" id="taskList"></div>
+    </section>
+
+    <aside class="side">
+      <section class="card goal-card" aria-labelledby="goalTitle">
+        <label class="field-label" id="goalTitle" for="goal">Mục tiêu hôm nay</label>
+        <textarea id="goal" maxlength="1000" placeholder="Điều quan trọng nhất bạn muốn hoàn thành…"></textarea>
+      </section>
+      <section class="card progress-card" aria-labelledby="progressTitle">
+        <div class="card-head" style="margin-bottom:14px"><div><h2 class="card-title" id="progressTitle">Tiến độ hoàn thành</h2><p class="card-hint">Tự tính theo công việc đã tích</p></div></div>
+        <div class="progress-content">
+          <div class="progress-ring" id="progressRing" role="img" aria-label="0 phần trăm hoàn thành"><span class="progress-value" id="progressValue">0%</span></div>
+          <div class="progress-copy"><strong id="progressSummary">Chưa có việc nào</strong><span id="progressDetail">Thêm việc để bắt đầu</span></div>
+        </div>
+        <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div>
+      </section>
+      <section class="card note-card" aria-labelledby="notesTitle">
+        <label class="field-label" id="notesTitle" for="notes">Ghi chú / Phát sinh</label>
+        <textarea id="notes" maxlength="1500" placeholder="Vướng mắc hoặc điều cần nhớ…"></textarea>
+      </section>
+    </aside>
+  </main>
+  <footer class="footer">Tự động lưu trên trình duyệt này · Mỗi ngày được lưu riêng theo ngày đã chọn</footer>
+</div>
+<script>
+(() => {
+  const KEY = "daily-focus-v1";
+  const dateInput = document.getElementById("dateInput");
+  const weekday = document.getElementById("weekday");
+  const todayBtn = document.getElementById("todayBtn");
+  const taskForm = document.getElementById("taskForm");
+  const taskInput = document.getElementById("taskInput");
+  const taskList = document.getElementById("taskList");
+  const taskCount = document.getElementById("taskCount");
+  const goal = document.getElementById("goal");
+  const notes = document.getElementById("notes");
+  const progressValue = document.getElementById("progressValue");
+  const progressRing = document.getElementById("progressRing");
+  const progressFill = document.getElementById("progressFill");
+  const progressSummary = document.getElementById("progressSummary");
+  const progressDetail = document.getElementById("progressDetail");
+  const saveLabel = document.getElementById("saveLabel");
+  let records = {};
+  let activeDate = "";
+  let saveTimer;
+
+  const pad = (value) => String(value).padStart(2,"0");
+  const localDateKey = (date = new Date()) => `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
+  const weekdayNames = ["Chủ Nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"];
+  const readStore = () => {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(KEY) || "{}");
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch (_) { return {}; }
+  };
+  const setSaveState = (message, saved = true) => {
+    saveLabel.textContent = message;
+    document.querySelector(".save-dot").style.background = saved ? "var(--green)" : "#d5803b";
+  };
+  const save = () => {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(records));
+      setSaveState("Đã lưu trên thiết bị");
+    } catch (_) {
+      setSaveState("Đang lưu trong phiên này", false);
+    }
+  };
+  const scheduleSave = () => {
+    setSaveState("Đang lưu…", false);
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(save, 180);
+  };
+  const currentRecord = () => {
+    if (!records[activeDate]) records[activeDate] = {goal:"", notes:"", tasks:[]};
+    if (!Array.isArray(records[activeDate].tasks)) records[activeDate].tasks = [];
+    return records[activeDate];
+  };
+  const updateWeekday = () => {
+    if (!dateInput.value) { weekday.textContent = "Chọn ngày"; return; }
+    const [year, month, day] = dateInput.value.split("-").map(Number);
+    weekday.textContent = weekdayNames[new Date(year, month - 1, day).getDay()];
+  };
+  const updateProgress = () => {
+    const record = currentRecord();
+    const total = record.tasks.length;
+    const done = record.tasks.filter(task => task.done).length;
+    const percent = total ? Math.round((done / total) * 100) : 0;
+    progressValue.textContent = `${percent}%`;
+    progressRing.style.setProperty("--angle", `${percent * 3.6}deg`);
+    progressRing.setAttribute("aria-label", `${percent} phần trăm hoàn thành`);
+    progressFill.style.width = `${percent}%`;
+    taskCount.textContent = `${total} ${total === 1 ? "việc" : "việc"}`;
+    if (!total) {
+      progressSummary.textContent = "Chưa có việc nào";
+      progressDetail.textContent = "Thêm việc để bắt đầu";
+    } else {
+      progressSummary.textContent = done === total ? "Hoàn thành tất cả" : `Đã xong ${done}/${total} việc`;
+      progressDetail.textContent = done === total ? "Tuyệt vời — ngày làm việc hoàn tất" : `Còn ${total - done} việc cần làm`;
+    }
+  };
+  const renderTasks = () => {
+    const record = currentRecord();
+    taskList.replaceChildren();
+    if (!record.tasks.length) {
+      const empty = document.createElement("div");
+      empty.className = "empty-state";
+      empty.textContent = "Chưa có công việc — thêm việc đầu tiên của bạn.";
+      taskList.appendChild(empty);
+      updateProgress();
+      return;
+    }
+    record.tasks.forEach((task, index) => {
+      const row = document.createElement("div");
+      row.className = `task-row${task.done ? " is-done" : ""}`;
+      const check = document.createElement("input");
+      check.type = "checkbox";
+      check.className = "task-check";
+      check.checked = Boolean(task.done);
+      check.setAttribute("aria-label", `${task.done ? "Bỏ tích" : "Đánh dấu hoàn thành"}: ${task.text}`);
+      check.addEventListener("change", () => {
+        currentRecord().tasks[index].done = check.checked;
+        renderTasks();
+        scheduleSave();
+      });
+      const label = document.createElement("span");
+      label.className = "task-label";
+      label.textContent = task.text;
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "remove-btn";
+      remove.setAttribute("aria-label", `Xóa công việc: ${task.text}`);
+      remove.title = "Xóa công việc";
+      remove.textContent = "×";
+      remove.addEventListener("click", () => {
+        currentRecord().tasks.splice(index, 1);
+        renderTasks();
+        scheduleSave();
+      });
+      row.append(check, label, remove);
+      taskList.appendChild(row);
+    });
+    updateProgress();
+  };
+  const loadDate = (dateKey) => {
+    activeDate = dateKey;
+    dateInput.value = dateKey;
+    updateWeekday();
+    const record = currentRecord();
+    goal.value = record.goal || "";
+    notes.value = record.notes || "";
+    renderTasks();
+    save();
+  };
+  dateInput.addEventListener("change", () => loadDate(dateInput.value || localDateKey()));
+  todayBtn.addEventListener("click", () => loadDate(localDateKey()));
+  taskForm.addEventListener("submit", event => {
+    event.preventDefault();
+    const text = taskInput.value.trim();
+    if (!text) { taskInput.focus(); return; }
+    currentRecord().tasks.push({text, done:false, id: (globalThis.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now())});
+    taskInput.value = "";
+    renderTasks();
+    scheduleSave();
+    taskInput.focus();
+  });
+  goal.addEventListener("input", () => { currentRecord().goal = goal.value; scheduleSave(); });
+  notes.addEventListener("input", () => { currentRecord().notes = notes.value; scheduleSave(); });
+  records = readStore();
+  loadDate(localDateKey());
+})();
+</script>
+</body>
+</html>
